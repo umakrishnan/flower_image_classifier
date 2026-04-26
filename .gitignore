@@ -1,0 +1,15 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+.venv/
+venv/
+.env
+
+# OS
+.DS_Store
+
+# User uploads (keep directory via .gitkeep)
+images/uploads/*
+!images/uploads/.gitkeep
