@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Classify a flower image using a pre-trained ResNet model.
+Classify a flower image using a ViT fine-tuned on Oxford 102 Flowers.
 
 Usage:
     python scripts/classify_flower.py --image images/uploads/flower.jpg --top-k 5
@@ -19,7 +19,7 @@ from inference import predict_path
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Run flower image classification with pre-trained ResNet50."
+        description="Run Oxford 102 flower classification (fine-tuned ViT, Hugging Face)."
     )
     parser.add_argument(
         "--image",
@@ -43,7 +43,7 @@ def main() -> None:
     if not image_path.exists():
         raise FileNotFoundError(f"Image not found: {image_path}")
 
-    print("Loading pre-trained ResNet50 weights (first run may download)...")
+    print("Loading Oxford 102 ViT (first run may download from Hugging Face)...")
     top_k = max(1, args.top_k)
     rows = predict_path(image_path, top_k=top_k)
 

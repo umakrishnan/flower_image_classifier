@@ -1,18 +1,19 @@
 """
-Tiny web UI for flower (ImageNet) classification with ResNet50.
+Tiny web UI for Oxford 102 flower classification (fine-tuned ViT).
 
 Run from project root:
     pip install -r requirements.txt
     python app.py
-Then open http://127.0.0.1:5000
+Then open http://127.0.0.1:5000 (or PORT=3000 python app.py).
 """
 
 from __future__ import annotations
 
+import mimetypes
 import os
 from pathlib import Path
 
-from flask import Flask, Response, render_template, request
+from flask import Flask, Response, abort, render_template, request, send_from_directory, url_for
 from werkzeug.utils import secure_filename
 
 _ROOT = Path(__file__).resolve().parent
@@ -33,6 +34,7 @@ def index():
     predictions = None
     error = None
     filename = None
+    preview_url = None
 
     if request.method == "POST":
         file = request.files.get("image")
@@ -44,13 +46,14 @@ def index():
             filename = secure_filename(file.filename)
             save_path = UPLOAD_DIR / filename
             file.save(save_path)
+            preview_url = url_for("serve_upload", filename=filename)
             try:
                 from inference import predict_upload
 
                 with open(save_path, "rb") as f:
                     predictions = predict_upload(f, top_k=5)
             except Exception as exc:  # noqa: BLE001 — demo UI: show friendly message
-                error = f"Could not read image: {exc}"
+                error = f"Could not classify image: {exc}"
                 predictions = None
 
     return render_template(
@@ -58,7 +61,21 @@ def index():
         predictions=predictions,
         error=error,
         filename=filename,
+        preview_url=preview_url,
     )
+
+
+@app.route("/uploads/<filename>")
+def serve_upload(filename: str):
+    """Serve an uploaded file for preview (single basename only)."""
+    safe = secure_filename(filename)
+    if not safe or safe != filename or "/" in filename or "\\" in filename:
+        abort(404)
+    path = (UPLOAD_DIR / safe).resolve()
+    if path.parent != UPLOAD_DIR.resolve() or not path.is_file():
+        abort(404)
+    mime, _ = mimetypes.guess_type(safe)
+    return send_from_directory(UPLOAD_DIR, safe, mimetype=mime)
 
 
 @app.route("/health")

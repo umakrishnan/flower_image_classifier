@@ -1,13 +1,17 @@
-# Flower Classifier (ResNet50)
+# Flower classifier (Oxford 102)
 
-This project classifies an uploaded flower image using a pre-trained ResNet50 model from `torchvision`.
+This project classifies an uploaded flower image using a **Vision Transformer (ViT)** fine-tuned on the **Oxford 102 Flowers** dataset, served from [Hugging Face](https://huggingface.co/loretyan/vit-base-oxford-flowers-102) (Apache-2.0). It is **much more flower-specific** than a generic ImageNet ResNet.
+
+**Model:** `loretyan/vit-base-oxford-flowers-102` — 102 English flower category names (tulip, rose, sunflower, …). Override with env `FLOWER_MODEL_ID` if you swap checkpoints.
+
+**Image size:** Any reasonable photo or screenshot works. The Hugging Face **image processor** resizes and normalizes to **224×224** before inference (you do not need to resize files yourself).
 
 ## Project structure
 
 ```
 flower_classifier/
 ├── app.py              # Tiny Flask web UI
-├── inference.py        # Shared ResNet50 inference
+├── inference.py        # Shared ViT inference
 ├── templates/
 │   └── index.html
 ├── images/
@@ -17,6 +21,7 @@ flower_classifier/
 ├── scripts/
 │   ├── classify_flower.py
 │   └── prepare_dirs.py
+├── PLAN.md             # Day-to-day workflow notes
 └── requirements.txt
 ```
 
@@ -41,7 +46,7 @@ flower_classifier/
    python scripts/prepare_dirs.py
    ```
 
-## Run classification
+## Run classification (CLI)
 
 1. Place an image file in `images/uploads/` (for example `my_flower.jpg`).
 2. Run:
@@ -50,7 +55,7 @@ flower_classifier/
    python scripts/classify_flower.py --image images/uploads/my_flower.jpg --top-k 5
    ```
 
-The script prints the top ImageNet class predictions and confidence scores.
+The script prints the top **Oxford 102** predictions and confidence scores.
 
 ## Web UI (demo)
 
@@ -60,9 +65,15 @@ From the project directory:
 python app.py
 ```
 
-Open [http://127.0.0.1:5000](http://127.0.0.1:5000), upload a flower photo, and click **Classify**. The first request downloads ResNet50 weights; allow network access for that step.
+Open [http://127.0.0.1:5000](http://127.0.0.1:5000), upload a flower photo, and click **Classify**. The UI shows a **preview** of the selected file (before submit) and the **uploaded image** after classification. The first run downloads ViT weights from Hugging Face; allow network access for that step.
 
-Optional: `PORT=8080 python app.py` to listen on another port.
+On a Mac, port **5000** is often taken by AirPlay; **8080** is often busy. Example:
+
+```bash
+PORT=3000 python app.py
+```
+
+Then open `http://127.0.0.1:3000/`.
 
 ### Blank page in the browser?
 
@@ -70,3 +81,8 @@ Optional: `PORT=8080 python app.py` to listen on another port.
 2. Open `http://127.0.0.1:5000/ping` — you should see plain text `flower_classifier server OK`.
 3. While refreshing, watch the terminal running `python app.py`: you should see a **GET** log line. **No log line** means nothing reached this app (wrong port, VPN, or Cursor preview not using your machine’s localhost).
 4. If the terminal shows GETs but the tab stays white, try `FLASK_NO_RELOADER=1 python app.py` (single process, avoids rare reloader quirks).
+
+## Limitations
+
+- **102 categories only** — unusual cultivars or “flowers in the wild” far from training may still be mislabeled.
+- **Not medical / production** — demo and learning use.

@@ -58,4 +58,4 @@ Feature branches + PRs are recommended if you use **Bugbot** or CI (reviews run 
 
 ## Demo note
 
-The model is **ImageNet** (not flower-only labels). Say that in live demos so expectations stay clear.
+The model is **Oxford 102 Flowers** (102 English flower names via a fine-tuned ViT). It is much more flower-specific than ImageNet, but wide field shots or odd cultivars can still be wrong—set expectations in live demos.
