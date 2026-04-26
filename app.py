@@ -12,7 +12,7 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-from flask import Flask, render_template, request
+from flask import Flask, Response, render_template, request
 from werkzeug.utils import secure_filename
 
 _ROOT = Path(__file__).resolve().parent
@@ -66,10 +66,19 @@ def health():
     return {"ok": True}
 
 
+@app.route("/ping")
+def ping():
+    """Plain text — if you see this in the browser, Flask is definitely responding."""
+    return Response(
+        "flower_classifier server OK\n",
+        mimetype="text/plain; charset=utf-8",
+    )
+
+
 @app.route("/test-ui")
 def test_ui():
     """Bright static page — if this is blank, the browser is not reaching Flask."""
-    return (
+    html = (
         "<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"utf-8\">"
         "<title>Flask OK</title></head>"
         '<body style="margin:0;padding:2rem;background:#ffeb3b;color:#111;'
@@ -80,8 +89,22 @@ def test_ui():
         '<p><a href="/" style="font-size:1.2rem">Open flower classifier ( / )</a></p>'
         "</body></html>"
     )
+    return Response(html, mimetype="text/html; charset=utf-8")
 
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", "5000"))
-    app.run(host="127.0.0.1", port=port, debug=True)
+    # 0.0.0.0 avoids some localhost / port-forward quirks; still use 127.0.0.1 in the browser.
+    host = os.environ.get("HOST", "0.0.0.0")
+    use_reloader = os.environ.get("FLASK_NO_RELOADER", "").lower() not in ("1", "true", "yes")
+
+    print(f"\n  Flower classifier — try in Chrome or Safari (not Cursor's preview):\n")
+    print(f"    http://127.0.0.1:{port}/ping       ← should show one line of text")
+    print(f"    http://127.0.0.1:{port}/test-ui    ← yellow page")
+    print(f"    http://127.0.0.1:{port}/           ← main app\n")
+    print("  When you refresh, this terminal should log a GET line. If it does not, the")
+    print("  request never reached this process (wrong port, VPN, or different machine).\n")
+    if not use_reloader:
+        print("  (reloader disabled via FLASK_NO_RELOADER=1)\n")
+
+    app.run(host=host, port=port, debug=True, use_reloader=use_reloader)
