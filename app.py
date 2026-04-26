@@ -15,9 +15,8 @@ from pathlib import Path
 from flask import Flask, render_template, request
 from werkzeug.utils import secure_filename
 
-from inference import predict_upload
-
-app = Flask(__name__)
+_ROOT = Path(__file__).resolve().parent
+app = Flask(__name__, template_folder=str(_ROOT / "templates"))
 app.config["MAX_CONTENT_LENGTH"] = 8 * 1024 * 1024  # 8 MB
 
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif", "webp"}
@@ -46,6 +45,8 @@ def index():
             save_path = UPLOAD_DIR / filename
             file.save(save_path)
             try:
+                from inference import predict_upload
+
                 with open(save_path, "rb") as f:
                     predictions = predict_upload(f, top_k=5)
             except Exception as exc:  # noqa: BLE001 — demo UI: show friendly message
