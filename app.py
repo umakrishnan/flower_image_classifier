@@ -66,6 +66,22 @@ def health():
     return {"ok": True}
 
 
+@app.route("/test-ui")
+def test_ui():
+    """Bright static page — if this is blank, the browser is not reaching Flask."""
+    return (
+        "<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"utf-8\">"
+        "<title>Flask OK</title></head>"
+        '<body style="margin:0;padding:2rem;background:#ffeb3b;color:#111;'
+        'font-family:system-ui,sans-serif">'
+        "<h1 style=\"margin-top:0\">Server reached Flask successfully.</h1>"
+        "<p>If you see yellow and this text, networking is fine. "
+        "Next open the real app:</p>"
+        '<p><a href="/" style="font-size:1.2rem">Open flower classifier ( / )</a></p>'
+        "</body></html>"
+    )
+
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", "5000"))
     app.run(host="127.0.0.1", port=port, debug=True)
